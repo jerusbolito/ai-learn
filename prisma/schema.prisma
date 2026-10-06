@@ -1,0 +1,149 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Provider {
+  id           String   @id @default(cuid())
+  slug         String   @unique // referenced by AppSettings.activeProvider
+  label        String
+  kind         String // "openai" | "openai-compatible" | "anthropic" | "google"
+  baseUrl      String   @default("") // required for openai-compatible
+  apiKey       String   @default("")
+  models       String   @default("[]") // JSON array of model ids
+  defaultModel String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model AppSettings {
+  id             String @id @default("singleton")
+  activeProvider String @default("")
+  activeModel    String @default("")
+}
+
+model LearningPath {
+  id                String         @id @default(cuid())
+  topic             String
+  summary           String         @default("")
+  status            String         @default("generating") // generating | ready | failed
+  error             String         @default("")
+  providerUsed      String         @default("")
+  version           Int            @default(1)
+  interview         String         @default("{}") // JSON of prereq-interview answers
+  prereqForId       String? // if set, this path is a prerequisite for that path
+  prereqFor         LearningPath?  @relation("Prereqs", fields: [prereqForId], references: [id])
+  prereqPaths       LearningPath[] @relation("Prereqs")
+  lastRegeneratedAt DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  modules           Module[]
+  versions          PlanVersion[]
+}
+
+model PlanVersion {
+  id          String       @id @default(cuid())
+  pathId      String
+  version     Int
+  snapshot    String // JSON of the full plan at that version
+  changeNotes String       @default("")
+  createdAt   DateTime     @default(now())
+  path        LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+}
+
+model Module {
+  id          String       @id @default(cuid())
+  pathId      String
+  stableId    String       @default("") // preserved across AI updates
+  order       Int
+  title       String
+  description String       @default("")
+  path        LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+}
+
+model Lesson {
+  id               String     @id @default(cuid())
+  moduleId         String
+  stableId         String // preserved across AI updates so progress carries over
+  order            Int
+  title            String
+  objectives       String     @default("[]") // JSON array of strings
+  summary          String     @default("")
+  content          String     @default("") // markdown, lazily generated then cached
+  contentGenerated Boolean    @default(false)
+  module           Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  challenges       Challenge[]
+  flashcards       Flashcard[]
+  progress         Progress[]
+
+  @@index([stableId])
+}
+
+model Challenge {
+  id       String     @id @default(cuid())
+  lessonId String
+  type     String // quiz | code | output_prediction | freeform
+  title    String     @default("")
+  payload  String // JSON: questions, test cases, starter code, etc.
+  lesson   Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  progress Progress[]
+}
+
+model Flashcard {
+  id           String   @id @default(cuid())
+  lessonId     String
+  front        String
+  back         String
+  intervalDays Int      @default(0)
+  ease         Float    @default(2.5)
+  nextReviewAt DateTime @default(now())
+  lesson       Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+}
+
+model Progress {
+  id          String     @id @default(cuid())
+  lessonId    String
+  challengeId String?
+  score       Int        @default(0)
+  xpEarned    Int        @default(0)
+  completedAt DateTime   @default(now())
+  lesson      Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  challenge   Challenge? @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([lessonId])
+  @@unique([challengeId])
+}
+
+model UserStats {
+  id               String @id @default("singleton")
+  totalXp          Int    @default(0)
+  currentStreak    Int    @default(0)
+  longestStreak    Int    @default(0)
+  lastActivityDate String @default("") // YYYY-MM-DD
+}
+
+model Badge {
+  id          String      @id // slug, e.g. "first-lesson"
+  name        String
+  description String
+  icon        String      @default("")
+  users       UserBadge[]
+}
+
+model UserBadge {
+  id         String   @id @default(cuid())
+  badgeId    String
+  unlockedAt DateTime @default(now())
+  badge      Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([badgeId])
+}

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0f;
+  --foreground: #e8e8f0;
 }
 
 @theme inline {
@@ -12,15 +12,95 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Rendered lesson markdown */
+.markdown {
+  line-height: 1.7;
+}
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  font-weight: 700;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  color: #ffffff;
+}
+.markdown h1 {
+  font-size: 1.6em;
+}
+.markdown h2 {
+  font-size: 1.3em;
+}
+.markdown h3 {
+  font-size: 1.1em;
+}
+.markdown p {
+  margin: 0.75em 0;
+}
+.markdown ul,
+.markdown ol {
+  margin: 0.75em 0;
+  padding-left: 1.5em;
+}
+.markdown ul {
+  list-style: disc;
+}
+.markdown ol {
+  list-style: decimal;
+}
+.markdown li {
+  margin: 0.25em 0;
+}
+.markdown code {
+  background: #1e1e2e;
+  border: 1px solid #2e2e42;
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.88em;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+.markdown pre {
+  background: #12121c;
+  border: 1px solid #2e2e42;
+  border-radius: 8px;
+  padding: 1em;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+.markdown pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+.markdown blockquote {
+  border-left: 3px solid #6366f1;
+  padding-left: 1em;
+  margin: 1em 0;
+  color: #a0a0b8;
+}
+.markdown a {
+  color: #818cf8;
+  text-decoration: underline;
+}
+.markdown table {
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+.markdown th,
+.markdown td {
+  border: 1px solid #2e2e42;
+  padding: 0.4em 0.8em;
+}
+.markdown th {
+  background: #1e1e2e;
+}
+.markdown hr {
+  border: none;
+  border-top: 1px solid #2e2e42;
+  margin: 1.5em 0;
 }
