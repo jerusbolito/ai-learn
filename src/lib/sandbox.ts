@@ -56,7 +56,8 @@ export function scopedEvaluate(
   return factory(fakeConsole) as (expr: string) => unknown;
 }
 
-const WORKER_SOURCE = `
+export const WORKER_SOURCE = `
+var REACT_STUB = ${JSON.stringify(REACT_STUB)};
 var scopedEvaluate = ${scopedEvaluate.toString()};
 
 self.onmessage = function (e) {
